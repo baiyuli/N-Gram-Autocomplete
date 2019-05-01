@@ -17,7 +17,7 @@ public class DiscountLMModel extends LMBase implements LMModel {
         //     System.out.printf("%-30.30s  %-30.30s%n", discount[i], model.getPerplexity(input));
         // }
         LMModel languageModel = new DiscountLMModel(args[0], Double.parseDouble(args[2]));
-        System.out.println(languageModel.getPerplexity(args[1]));
+        // System.out.println(languageModel.getPerplexity(args[1]));
     }
 
     public DiscountLMModel(String filename, double discount){
@@ -79,31 +79,27 @@ public class DiscountLMModel extends LMBase implements LMModel {
         String bigram = first + "-" + second;
         // System.out.println(bigram);
         if (trigramTable.get(bigram) == null){
-            return discount;
+            return getBigramProb(second, third);
         }
         if (trigramTable.get(bigram).get(third) == null){
             if (alpha.get(bigram) != null){
-                if (alpha.get(bigram) * getBigramProb(second, third) == 0.0){
-                    return discount;
-                }
                 return alpha.get(bigram) * getBigramProb(second, third);
             }
             else {
                 int num_types = trigramTable.get(bigram).size();
                 double reserved_mass = (num_types * discount)/(trigramTotal.get(bigram));
+                // System.out.println("reserved mass: " +reserved_mass);
                 double bigram_sum_prob = 0.0;
-                if (trigramTable.get(bigram) != null){
-                    for (Map.Entry<String, Integer> trigramEntry : trigramTable.get(bigram).entrySet()){
-                        if (bigramTable.get(second).get(trigramEntry.getKey()) != null){
-                        bigram_sum_prob += (double)bigramTable.get(second).get(trigramEntry.getKey())/
-                                           (double)bigramTotal.get(second);
-                        }
+                for (Map.Entry<String, Integer> trigramEntry : trigramTable.get(bigram).entrySet()){
+                    if (bigramTable.get(second).get(trigramEntry.getKey()) != null){
+                    bigram_sum_prob += (double)bigramTable.get(second).get(trigramEntry.getKey())/
+                                        (double)bigramTotal.get(second);
                     }
                 }
+
+                // System.out.println("bigram sum prob: " + bigram_sum_prob);
                 alpha.put(bigram, reserved_mass/(1-bigram_sum_prob));
-                if (alpha.get(bigram) * getBigramProb(second, third) == 0.0){
-                    return discount;
-                }
+
                 return alpha.get(bigram) * getBigramProb(second, third);
             }
         }

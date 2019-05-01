@@ -155,9 +155,7 @@ abstract class LMBase {
 
     public void addTrigram(String fstWord, String sndWord, String trdWord){
         String bigram = fstWord + "-" + sndWord;
-        if (bigram.equals("<s>-bugis")){
-            System.out.println(bigram);
-        }
+
         if (trigramTable.get(bigram) == null){
             trigramTable.put(bigram, new HashMap<String, Integer>());
         }
@@ -187,10 +185,22 @@ abstract class LMBase {
         prob += Math.log10(this.getTrigramProb(sentWords.get(size-2), sentWords.get(size-1), "</s>"));
 
         for(int i=0; i<size-2; i++) {
+            // System.out.println(sentWords.get(i) +" "+ sentWords.get(i+1) +" "+ sentWords.get(i+2));
+            // System.out.println(this.getTrigramProb(sentWords.get(i), sentWords.get(i+1), sentWords.get(i+2)));
+            // Double prob1 = this.getTrigramProb(sentWords.get(i), sentWords.get(i+1), sentWords.get(i+2));
+            // Double prob2 = Math.log10(prob1);
+            // System.out.println("prob: " + prob1);
+            // System.out.println("log_prob: " + prob2);
+            // if (prob1.isInfinite() || prob2.isNaN() || prob1.isNaN() || prob2.isInfinite()) {
+            //     System.out.println(sentWords.get(i) +" "+ sentWords.get(i+1)+" "+ sentWords.get(i+2));
+            //     continue;
+            // }
             prob += Math.log10(this.getTrigramProb(sentWords.get(i), sentWords.get(i+1), sentWords.get(i+2)));
+            // System.out.println("REALPROB: " + prob);
         }
 
-        System.out.println(prob);
+        // System.out.println(sentWords);
+        
         return prob;
     }
 
@@ -232,6 +242,20 @@ abstract class LMBase {
             }
         }catch(IOException e){
         }
+
+        // System.out.println("num, n: " + numerator + "    " + n);
+        // System.out.println(trigramTable.get("the-rebec"));
+        // int num_types = trigramTable.get("the-rebec").size();
+        //         double reserved_mass = (num_types * 0.01)/(trigramTotal.get("the-rebec"));
+        //         System.out.println("reserved mass: " +reserved_mass);
+        //         double bigram_sum_prob = 0.0;
+        //         for (Map.Entry<String, Integer> trigramEntry : trigramTable.get("the-rebec").entrySet()){
+        //             if (bigramTable.get("rebec").get(trigramEntry.getKey()) != null){
+        //             bigram_sum_prob += (double)bigramTable.get("rebec").get(trigramEntry.getKey())/
+        //                                 (double)bigramTotal.get("rebec");
+        //             }
+        //         }
+        // System.out.println(bigram_sum_prob);
 
         return (Math.pow(10.0, -1*(numerator)/((double)n)));
     }
