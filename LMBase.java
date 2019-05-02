@@ -204,6 +204,19 @@ abstract class LMBase {
         return prob;
     }
 
+    public double logProb2(ArrayList<String> sentWords){
+        double prob = 0;
+
+        //account for start and end token log probabilities
+        prob += Math.log10(this.getBigramProb("<s>", sentWords.get(0)));
+        prob += Math.log10(this.getBigramProb(sentWords.get(sentWords.size()-1), "</s>"));
+
+        for(int i=1;i<sentWords.size();i++) {
+            prob += Math.log10(this.getBigramProb(sentWords.get(i - 1), sentWords.get(i)));
+        }
+        return prob;
+    }
+
     /**
      * Given a text file, calculate the perplexity of the text file, that is the negative average per word log
      * probability
@@ -243,7 +256,7 @@ abstract class LMBase {
         }catch(IOException e){
         }
 
-        // System.out.println("num, n: " + numerator + "    " + n);
+        System.out.println("num, n: " + numerator + "    " + n);
         // System.out.println(trigramTable.get("the-rebec"));
         // int num_types = trigramTable.get("the-rebec").size();
         //         double reserved_mass = (num_types * 0.01)/(trigramTotal.get("the-rebec"));

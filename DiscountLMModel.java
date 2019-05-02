@@ -17,7 +17,7 @@ public class DiscountLMModel extends LMBase implements LMModel {
         //     System.out.printf("%-30.30s  %-30.30s%n", discount[i], model.getPerplexity(input));
         // }
         LMModel languageModel = new DiscountLMModel(args[0], Double.parseDouble(args[2]));
-        // System.out.println(languageModel.getPerplexity(args[1]));
+        System.out.println(languageModel.getPerplexity(args[1]));
     }
 
     public DiscountLMModel(String filename, double discount){
@@ -99,6 +99,7 @@ public class DiscountLMModel extends LMBase implements LMModel {
 
                 // System.out.println("bigram sum prob: " + bigram_sum_prob);
                 alpha.put(bigram, reserved_mass/(1-bigram_sum_prob));
+
 
                 return alpha.get(bigram) * getBigramProb(second, third);
             }
