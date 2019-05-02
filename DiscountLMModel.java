@@ -1,14 +1,16 @@
+import java.io.IOException;
 import java.util.*;
+import java.io.*;
 
 /**
- * @authors Baiyu Li,Dylan Keezell
- * An absolute discounting bigram language model
+ * @authors Baiyu Li, Carlos Salas Ortega
+ * An absolute discounting trigram language model
  */
 public class DiscountLMModel extends LMBase implements LMModel {
     private double discount;
     private HashMap<String, Double> alpha = new HashMap<>();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // String input = "testing.txt";
         // System.out.println("Perplexity of "+input+" is:");
         // double[] discount = {.99,.9,.75,.5,.25,.1};
@@ -16,14 +18,83 @@ public class DiscountLMModel extends LMBase implements LMModel {
         //     LMModel model = new DiscountLMModel("training.txt", discount[i]);
         //     System.out.printf("%-30.30s  %-30.30s%n", discount[i], model.getPerplexity(input));
         // }
+
         LMModel languageModel = new DiscountLMModel(args[0], Double.parseDouble(args[2]));
         System.out.println(languageModel.getPerplexity(args[1]));
     }
 
-    public DiscountLMModel(String filename, double discount){
+    public DiscountLMModel(String filename, String testFile ,double discount) throws IOException{
         this.discount=discount;
         this.getCount(filename);
+        this.returnTop3(testFile);
     }
+
+
+    public void returnTop3(String file) throws IOException{
+        BufferedReader testReader = new BufferedReader(new FileReader(file));
+        String inputlines;
+
+        TreeMap<String,Double> probabilities = new TreeMap<>(Collections.reverseOrder());
+
+        while((inputlines = testReader.readLine()) != null){
+            double prob = 0.0;
+            String currProbWord = "";
+            String fString = "";
+            probabilities.clear();
+            String[] wordsInLine = inputlines.split("\\s");
+            String penultimateWord = wordsInLine[wordsInLine.length-2];
+            String finalWord = wordsInLine[wordsInLine.length-1];
+            String concatFinalWords = penultimateWord + "-" + finalWord;
+
+            // If the trigram exists
+            if(trigramTable.containsKey(concatFinalWords)){
+                Iterator<String> trigramIterator = trigramTable.get(concatFinalWords).keySet().iterator();
+                while(trigramIterator.hasNext()){
+                    // Create a HashMap with words and probs for the last two words
+                    currProbWord = trigramIterator.next();
+                    prob = getTrigramProb(penultimateWord,finalWord,currProbWord);
+                    probabilities.put(currProbWord,prob);
+                }
+                Iterator<String> keySetAscending = probabilities.descendingKeySet().descendingIterator();
+                fString = penultimateWord + " " + finalWord + " ";
+                System.out.println("Top Three predictions for " + fString);
+                for(int i = 0; i < 3; i++){
+                    if(keySetAscending.hasNext()){
+                        System.out.println(keySetAscending.next());
+                    }
+                    else{
+                        i = 3;
+                    }
+                }
+                System.out.println(probabilities);
+            }
+            // If the trigram doesn't exist use the bigram instead
+            else if(bigramTable.containsKey(finalWord) && !trigramTable.containsKey(concatFinalWords)){
+                Iterator<String> bigramIterator = bigramTable.get(finalWord).keySet().iterator();
+                while(bigramIterator.hasNext()){
+                    currProbWord = bigramIterator.next();
+                    prob = getBigramProb(finalWord,currProbWord);
+                    probabilities.put(currProbWord,prob);
+                }
+                System.out.println(probabilities);
+                Iterator<String> keySetAscending = probabilities.descendingKeySet().descendingIterator();
+                fString = finalWord + " ";
+                System.out.println("Top Three predictions for " + fString);
+                for(int i = 0; i < 3; i++){
+                    String nextPrediction = keySetAscending.next();
+                    if(nextPrediction != null){
+                        System.out.println(nextPrediction);
+
+                    }
+                }
+                System.out.println(keySetAscending);
+            }
+
+        }
+
+    }
+
+
     /**
      * Returns p(second | first)
      *
@@ -109,5 +180,6 @@ public class DiscountLMModel extends LMBase implements LMModel {
             // System.out.println(bigram + " : " + (double)trigramTotal.get(bigram));
             return (double)(trigramTable.get(bigram).get(third) - discount)/(double)trigramTotal.get(bigram);
         }
+
     }
 }
