@@ -69,8 +69,8 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 fString = finalWord + " ";
                 System.out.println("Top Three predictions for: " + fString);
                 for(int i = 0; i < 3; i++){
-                    String nextPrediction = keySetAscending.next();
-                    if(nextPrediction != null){
+                    if(keySetAscending.hasNext()){
+                        String nextPrediction = keySetAscending.next();
                         System.out.println(nextPrediction);
                         if (nextPrediction.equals(actualWord)){
                             correctPredictions++;
