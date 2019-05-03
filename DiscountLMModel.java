@@ -10,40 +10,27 @@ public class DiscountLMModel extends LMBase implements LMModel {
     private double discount;
     private HashMap<String, Double> alpha = new HashMap<>();
 
-    public static void main(String[] args) throws IOException {
-        // String input = "testing.txt";
-        // System.out.println("Perplexity of "+input+" is:");
-        // double[] discount = {.99,.9,.75,.5,.25,.1};
-        // for(int i=0;i<discount.length;i++){
-        //     LMModel model = new DiscountLMModel("training.txt", discount[i]);
-        //     System.out.printf("%-30.30s  %-30.30s%n", discount[i], model.getPerplexity(input));
-        // }
-
-        LMModel languageModel = new DiscountLMModel(args[0], Double.parseDouble(args[2]));
-        System.out.println(languageModel.getPerplexity(args[1]));
-    }
-
-    public DiscountLMModel(String filename, String testFile ,double discount) throws IOException{
+    public DiscountLMModel(String trainingFile, double discount) throws IOException{
         this.discount=discount;
-        this.getCount(filename);
-        this.returnTop3(testFile);
+        this.getCount(trainingFile);
     }
 
-
-    public void returnTop3(String file) throws IOException{
+    public void returnPredictions(String file) throws IOException{
         BufferedReader testReader = new BufferedReader(new FileReader(file));
         String inputlines;
 
         TreeMap<String,Double> probabilities = new TreeMap<>(Collections.reverseOrder());
-
+        int correctPredictions = 0, totalPredictions = 0;
         while((inputlines = testReader.readLine()) != null){
+            totalPredictions++;
             double prob = 0.0;
             String currProbWord = "";
             String fString = "";
             probabilities.clear();
             String[] wordsInLine = inputlines.split("\\s");
-            String penultimateWord = wordsInLine[wordsInLine.length-2];
-            String finalWord = wordsInLine[wordsInLine.length-1];
+            String penultimateWord = wordsInLine[wordsInLine.length-3];
+            String finalWord = wordsInLine[wordsInLine.length-2];
+            String actualWord = wordsInLine[wordsInLine.length-1];
             String concatFinalWords = penultimateWord + "-" + finalWord;
 
             // If the trigram exists
@@ -57,13 +44,14 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 }
                 Iterator<String> keySetAscending = probabilities.descendingKeySet().descendingIterator();
                 fString = penultimateWord + " " + finalWord + " ";
-                System.out.println("Top Three predictions for " + fString);
+                System.out.println("Top Three predictions for: " + fString);
                 for(int i = 0; i < 3; i++){
                     if(keySetAscending.hasNext()){
-                        System.out.println(keySetAscending.next());
-                    }
-                    else{
-                        i = 3;
+                        String prediction = keySetAscending.next();
+                        System.out.println(prediction);
+                        if (prediction.equals(actualWord)){
+                            correctPredictions++;
+                        }
                     }
                 }
                 System.out.println(probabilities);
@@ -79,19 +67,20 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 System.out.println(probabilities);
                 Iterator<String> keySetAscending = probabilities.descendingKeySet().descendingIterator();
                 fString = finalWord + " ";
-                System.out.println("Top Three predictions for " + fString);
+                System.out.println("Top Three predictions for: " + fString);
                 for(int i = 0; i < 3; i++){
                     String nextPrediction = keySetAscending.next();
                     if(nextPrediction != null){
                         System.out.println(nextPrediction);
-
+                        if (nextPrediction.equals(actualWord)){
+                            correctPredictions++;
+                        }
                     }
                 }
                 System.out.println(keySetAscending);
             }
-
         }
-
+        System.out.println("% Lines predicted correctly: " + (double)correctPredictions/(double)totalPredictions);
     }
 
 
@@ -163,12 +152,9 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 double bigram_sum_prob = 0.0;
                 for (Map.Entry<String, Integer> trigramEntry : trigramTable.get(bigram).entrySet()){
                     if (bigramTable.get(second).get(trigramEntry.getKey()) != null){
-                    bigram_sum_prob += (double)bigramTable.get(second).get(trigramEntry.getKey())/
-                                        (double)bigramTotal.get(second);
+                        bigram_sum_prob += getBigramProb(second, trigramEntry.getKey());
                     }
                 }
-
-                // System.out.println("bigram sum prob: " + bigram_sum_prob);
                 alpha.put(bigram, reserved_mass/(1-bigram_sum_prob));
 
 
@@ -176,8 +162,6 @@ public class DiscountLMModel extends LMBase implements LMModel {
             }
         }
         else {
-            // System.out.println(bigram + " : " + trigramTable.get(bigram).get(third));
-            // System.out.println(bigram + " : " + (double)trigramTotal.get(bigram));
             return (double)(trigramTable.get(bigram).get(third) - discount)/(double)trigramTotal.get(bigram);
         }
 

@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.io.*;
 
 /**
  * An interface for generic bigram language models
@@ -24,6 +25,7 @@ public interface LMModel {
 	 */
 	public double getPerplexity(String filename);
 	
+	public void returnPredictions(String file) throws IOException;
 	/**
 	 * Returns p(second | first)
 	 * 
