@@ -15,23 +15,36 @@ public class DiscountLMModel extends LMBase implements LMModel {
         this.getCount(trainingFile);
     }
 
-    public void returnPredictions(String file) throws IOException{
+    public void returnPredictions(String file) throws IOException {
         BufferedReader testReader = new BufferedReader(new FileReader(file));
         String inputlines;
 
         TreeMap<String,Double> probabilities = new TreeMap<>(Collections.reverseOrder());
         int correctPredictions = 0, totalPredictions = 0;
         while((inputlines = testReader.readLine()) != null){
-            totalPredictions++;
             double prob = 0.0;
             String currProbWord = "";
             String fString = "";
             probabilities.clear();
             String[] wordsInLine = inputlines.split("\\s");
-            String penultimateWord = wordsInLine[wordsInLine.length-3];
-            String finalWord = wordsInLine[wordsInLine.length-2];
+            String penultimateWord = "";
+            String finalWord = "";
+            String concatFinalWords = "";
             String actualWord = wordsInLine[wordsInLine.length-1];
-            String concatFinalWords = penultimateWord + "-" + finalWord;
+            if (wordsInLine.length >= 3){
+                penultimateWord = wordsInLine[wordsInLine.length-3];
+                finalWord = wordsInLine[wordsInLine.length-2];
+                concatFinalWords = penultimateWord + "-" + finalWord;
+                totalPredictions++;
+            }
+            else if (wordsInLine.length == 2){
+                finalWord = wordsInLine[wordsInLine.length-2];
+                concatFinalWords = finalWord;
+                totalPredictions++;
+            }
+            else {
+                continue;
+            }
 
             // If the trigram exists
             if(trigramTable.containsKey(concatFinalWords)){
@@ -80,7 +93,7 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 System.out.println(keySetAscending);
             }
         }
-        System.out.println("% Lines predicted correctly: " + (double)correctPredictions/(double)totalPredictions);
+        System.out.println("% Lines predicted correctly: " + (double)correctPredictions/(double)totalPredictions + " " + totalPredictions);
     }
 
 
