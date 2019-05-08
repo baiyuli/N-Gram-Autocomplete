@@ -35,6 +35,10 @@ abstract class LMBase {
             BufferedReader reader =  new BufferedReader(new FileReader(filename));
             String line= reader.readLine();
             while(line!=null){
+                if (line.equals(" ")){
+                    line = reader.readLine();
+                    continue;
+                }
                 line = " <s> "+line+" </s> ";
                 int begin;
                 int end =0;

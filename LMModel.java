@@ -24,6 +24,8 @@ public interface LMModel {
 	 * @return the perplexity of the text in file based on the LM
 	 */
 	public double getPerplexity(String filename);
+
+	public double getAccuracy();
 	
 	public void returnPredictions(String file) throws IOException;
 	/**

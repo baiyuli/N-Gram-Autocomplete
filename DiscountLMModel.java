@@ -9,6 +9,7 @@ import java.io.*;
 public class DiscountLMModel extends LMBase implements LMModel {
     private double discount;
     private HashMap<String, Double> alpha = new HashMap<>();
+    private double accuracy;
 
     public DiscountLMModel(String trainingFile, double discount) throws IOException{
         this.discount=discount;
@@ -22,6 +23,9 @@ public class DiscountLMModel extends LMBase implements LMModel {
         TreeMap<String,Double> probabilities = new TreeMap<>(Collections.reverseOrder());
         int correctPredictions = 0, totalPredictions = 0;
         while((inputlines = testReader.readLine()) != null){
+            if (inputlines.equals(" ")){
+                continue;
+            }
             double prob = 0.0;
             String currProbWord = "";
             String fString = "";
@@ -57,7 +61,7 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 }
                 Iterator<String> keySetAscending = probabilities.descendingKeySet().descendingIterator();
                 fString = penultimateWord + " " + finalWord + " ";
-                System.out.println("Top Three predictions for: " + fString);
+                // System.out.println("Top Three predictions for: " + fString);
                 for(int i = 0; i < 3; i++){
                     if(keySetAscending.hasNext()){
                         String prediction = keySetAscending.next();
@@ -67,7 +71,7 @@ public class DiscountLMModel extends LMBase implements LMModel {
                         }
                     }
                 }
-                System.out.println(probabilities);
+                // System.out.println(probabilities);
             }
             // If the trigram doesn't exist use the bigram instead
             else if(bigramTable.containsKey(finalWord) && !trigramTable.containsKey(concatFinalWords)){
@@ -77,10 +81,10 @@ public class DiscountLMModel extends LMBase implements LMModel {
                     prob = getBigramProb(finalWord,currProbWord);
                     probabilities.put(currProbWord,prob);
                 }
-                System.out.println(probabilities);
+                // System.out.println(probabilities);
                 Iterator<String> keySetAscending = probabilities.descendingKeySet().descendingIterator();
                 fString = finalWord + " ";
-                System.out.println("Top Three predictions for: " + fString);
+                // System.out.println("Top Three predictions for: " + fString);
                 for(int i = 0; i < 3; i++){
                     if(keySetAscending.hasNext()){
                         String nextPrediction = keySetAscending.next();
@@ -93,9 +97,13 @@ public class DiscountLMModel extends LMBase implements LMModel {
                 System.out.println(keySetAscending);
             }
         }
+        accuracy = (double)correctPredictions/(double)totalPredictions;
         System.out.println("% Lines predicted correctly: " + (double)correctPredictions/(double)totalPredictions + " " + totalPredictions);
     }
 
+    public double getAccuracy(){
+        return this.accuracy;
+    }
 
     /**
      * Returns p(second | first)
